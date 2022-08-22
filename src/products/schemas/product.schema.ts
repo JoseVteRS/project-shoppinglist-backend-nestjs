@@ -11,6 +11,7 @@ export type ProductDocument = Product & Document;
 export class Product {
   @Prop({
     type: String,
+    _id: false,
     default: () => {
       return generateUUID();
     },
