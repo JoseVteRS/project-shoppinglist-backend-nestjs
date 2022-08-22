@@ -5,22 +5,43 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Model } from 'mongoose';
+import { Category } from 'src/categories/entities/category.entity';
+import { CategoryDocument } from 'src/categories/schemas/category.schema';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
+
+    @InjectModel(Category.name)
+    private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
-  create(createProductDto: CreateProductDto) {
-    const createdProduct = new this.productModel(createProductDto);
+  async create(createProductDto: CreateProductDto) {
+    const createdProduct = await this.productModel.create(createProductDto);
+    const productsForCategories = [];
+
+    for (const category of createdProduct.categories) {
+      const categoryFinded = await this.categoryModel.findById(category);
+
+      productsForCategories.push(
+        this.categoryModel.findByIdAndUpdate(category, {
+          products: [...categoryFinded.products, createdProduct._id],
+        }),
+      );
+    }
+    await Promise.all(productsForCategories);
+
     return createdProduct.save();
   }
 
   async findAll(): Promise<Product[]> {
-    const findedProducts = await this.productModel.find();
-    if (!findedProducts) throw new NotFoundException();
+    const findedProducts = await this.productModel
+      .find()
+      .populate('categories', '_id name');
+
+    // if (!findedProducts) throw new NotFoundException();
 
     return findedProducts;
   }
@@ -33,7 +54,20 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    await this.findOne(id);
+    const findedProduct = await this.findOne(id);
+
+    const productsForCategories = [];
+
+    for (const category of findedProduct.categories) {
+      const categoryFinded = await this.categoryModel.findById(category);
+
+      productsForCategories.push(
+        this.categoryModel.findByIdAndUpdate(category, {
+          products: [...categoryFinded.products, findedProduct._id],
+        }),
+      );
+    }
+    await Promise.all(productsForCategories);
 
     return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,
