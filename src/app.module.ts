@@ -2,8 +2,6 @@ import { EnvEnum } from './common/env/env.enum';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 
@@ -14,8 +12,8 @@ import { CategoriesModule } from './categories/categories.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const databaseName= configService.get(EnvEnum.DB_NAME);
-        const mongodbUri = configService.get(EnvEnum.MONGODB_URI)
+        const databaseName = configService.get(EnvEnum.DB_NAME);
+        const mongodbUri = configService.get(EnvEnum.MONGODB_URI);
         return {
           uri: `${mongodbUri}${databaseName}`,
         };
@@ -24,7 +22,7 @@ import { CategoriesModule } from './categories/categories.module';
     ProductsModule,
     CategoriesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
