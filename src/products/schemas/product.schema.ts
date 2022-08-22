@@ -18,7 +18,7 @@ export class Product {
   _id: string;
 
   @Prop({ type: String, trim: true, required: true })
-  title: string;
+  name: string;
 
   @Prop({ type: String })
   note: string;
